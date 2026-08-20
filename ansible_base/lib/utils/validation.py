@@ -45,7 +45,10 @@ CONTROL_CHARS = (
 _CONTROL_RE = re.compile(CONTROL_CHARS)
 
 _HANDLER_URI_RE = re.compile(
-    r'\b(?:javascript|vbscript)\s*:' + r'|\bdata\s*:\s*(?:text/(?:html|javascript|xml)|application/(?:xhtml\+xml|javascript|xml)|image/svg\+xml)',
+    r'\b(?:javascript|vbscript)\s*:' + r'|\bdata\s*:\s*(?:'
+    r'text/(?:html|javascript[\d.]*|xml|ecmascript|x-javascript|x-ecmascript|jscript|livescript)'
+    r'|application/(?:xhtml\+xml|javascript|xml|ecmascript|x-javascript|x-ecmascript)'
+    r'|image/svg\+xml)',
     re.IGNORECASE,
 )
 

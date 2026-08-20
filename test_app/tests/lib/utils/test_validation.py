@@ -826,6 +826,12 @@ class TestValidateFreeText:
             ("data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+", "data URI with SVG MIME type"),
             ("data:application/xml;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==", "data URI with application/xml MIME"),
             ("data:text/xml;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==", "data URI with text/xml MIME"),
+            ("data:text/ecmascript,alert(1)", "data URI with text/ecmascript MIME"),
+            ("data:application/ecmascript,alert(1)", "data URI with application/ecmascript MIME"),
+            ("data:text/x-javascript,alert(1)", "data URI with text/x-javascript MIME"),
+            ("data:text/jscript,alert(1)", "data URI with text/jscript MIME"),
+            ("data:text/livescript,alert(1)", "data URI with text/livescript MIME"),
+            ("data:text/javascript1.5,alert(1)", "data URI with versioned JS MIME type"),
         ],
     )
     def test_rejects_dangerous_uri_schemes(self, value, description):
