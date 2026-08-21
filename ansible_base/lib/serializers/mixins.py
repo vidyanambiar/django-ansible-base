@@ -200,12 +200,18 @@ class CleanTextMixin:
             if get_setting('ENHANCED_INPUT_VALIDATION_ENABLED', False):
                 errors[qualified_key] = [_INCOMPLETE_VALIDATION_MSG]
 
+    def _check_json_depth_limit(self, depth, errors, key_prefix, field_name):
+        """Return True and record an error if the JSON depth limit is exceeded."""
+        if depth < self._MAX_JSON_DEPTH:
+            return False
+        logger.warning("JSON validation depth limit (%d) reached for field '%s' — deeper values were not validated", self._MAX_JSON_DEPTH, field_name)
+        error_key = key_prefix.rstrip('.') or field_name
+        errors[error_key] = [_INCOMPLETE_VALIDATION_MSG]
+        return True
+
     def _validate_json_dict(self, data, skip_keys, errors, key_prefix="", field_name="", stored_data=None, depth=0):
         """Validate values in a JSON dict, recursing into nested structures."""
-        if depth >= self._MAX_JSON_DEPTH:
-            logger.warning("JSON validation depth limit (%d) reached for field '%s' — deeper values were not validated", self._MAX_JSON_DEPTH, field_name)
-            error_key = key_prefix.rstrip('.') or field_name
-            errors[error_key] = [_INCOMPLETE_VALIDATION_MSG]
+        if self._check_json_depth_limit(depth, errors, key_prefix, field_name):
             return
         for key, val in data.items():
             if key in skip_keys:
@@ -225,10 +231,7 @@ class CleanTextMixin:
 
     def _validate_json_list(self, data, skip_keys, errors, key_prefix="", field_name="", stored_data=None, depth=0):
         """Validate values in a JSON list, recursing into nested structures."""
-        if depth >= self._MAX_JSON_DEPTH:
-            logger.warning("JSON validation depth limit (%d) reached for field '%s' — deeper values were not validated", self._MAX_JSON_DEPTH, field_name)
-            error_key = key_prefix or field_name
-            errors[error_key] = [_INCOMPLETE_VALIDATION_MSG]
+        if self._check_json_depth_limit(depth, errors, key_prefix, field_name):
             return
         for idx, item in enumerate(data):
             stored_item = stored_data[idx] if isinstance(stored_data, list) and idx < len(stored_data) else None

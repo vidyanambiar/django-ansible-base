@@ -38,17 +38,14 @@ _MARK_CAT_RE = regex.compile(r'\p{M}')
 def _has_dense_combining_marks(value, window=8, threshold=5):
     """Detect dense combining marks in any window, catching interleaved Zalgo."""
     positions = [m.start() for m in _MARK_CAT_RE.finditer(value)]
-    for i in range(len(positions)):
-        span_start = positions[i]
-        count = 0
-        for j in range(i, len(positions)):
-            if positions[j] - span_start < window:
-                count += 1
-                if count >= threshold:
-                    return True
-            else:
-                break
+    left = 0
+    for right in range(len(positions)):
+        while positions[right] - positions[left] >= window:
+            left += 1
+        if right - left + 1 >= threshold:
+            return True
     return False
+
 
 CONTROL_CHARS = (
     '['
