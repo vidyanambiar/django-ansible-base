@@ -1,6 +1,7 @@
 import base64
 import binascii
 import html as html_mod
+import logging
 import re
 import secrets
 import unicodedata
@@ -19,6 +20,8 @@ from django.core.validators import URLValidator
 from django.utils.translation import gettext_lazy as _
 from rest_framework.serializers import ValidationError
 
+logger = logging.getLogger('ansible_base.lib.utils.validation')
+
 VALID_STRING = _('Must be a valid string')
 
 DEFAULT_NAME_FIELDS = frozenset({'name', 'username', 'hostname'})
@@ -29,6 +32,23 @@ RESOURCE_NAME_RE = regex.compile(RESOURCE_NAME_PATTERN)
 
 _INVISIBLE_RE = regex.compile(r'\p{Default_Ignorable_Code_Point}')
 _ZALGO_RE = regex.compile(r'\p{M}{5,}')
+_MARK_CAT_RE = regex.compile(r'\p{M}')
+
+
+def _has_dense_combining_marks(value, window=8, threshold=5):
+    """Detect dense combining marks in any window, catching interleaved Zalgo."""
+    positions = [m.start() for m in _MARK_CAT_RE.finditer(value)]
+    for i in range(len(positions)):
+        span_start = positions[i]
+        count = 0
+        for j in range(i, len(positions)):
+            if positions[j] - span_start < window:
+                count += 1
+                if count >= threshold:
+                    return True
+            else:
+                break
+    return False
 
 CONTROL_CHARS = (
     '['
@@ -74,6 +94,8 @@ def _decoded_variants(value, max_depth=3):
             break
         variants.append(collapsed)
         current = collapsed
+    else:
+        logger.warning("Decode-variant loop did not converge after %d passes — input may contain deeply encoded content", max_depth)
     return variants
 
 
@@ -110,8 +132,8 @@ def validate_resource_name(value):
                 "Start with a letter, number, or underscore. Max 512 characters."
             )
         )
-    if _ZALGO_RE.search(value):
-        raise ValidationError(_("Too many consecutive combining marks."))
+    if _ZALGO_RE.search(value) or _has_dense_combining_marks(value):
+        raise ValidationError(_("Too many combining marks."))
 
 
 def validate_free_text(value):

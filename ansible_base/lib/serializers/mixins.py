@@ -204,6 +204,8 @@ class CleanTextMixin:
         """Validate values in a JSON dict, recursing into nested structures."""
         if depth >= self._MAX_JSON_DEPTH:
             logger.warning("JSON validation depth limit (%d) reached for field '%s' — deeper values were not validated", self._MAX_JSON_DEPTH, field_name)
+            error_key = key_prefix.rstrip('.') or field_name
+            errors[error_key] = [_INCOMPLETE_VALIDATION_MSG]
             return
         for key, val in data.items():
             if key in skip_keys:
@@ -225,6 +227,8 @@ class CleanTextMixin:
         """Validate values in a JSON list, recursing into nested structures."""
         if depth >= self._MAX_JSON_DEPTH:
             logger.warning("JSON validation depth limit (%d) reached for field '%s' — deeper values were not validated", self._MAX_JSON_DEPTH, field_name)
+            error_key = key_prefix or field_name
+            errors[error_key] = [_INCOMPLETE_VALIDATION_MSG]
             return
         for idx, item in enumerate(data):
             stored_item = stored_data[idx] if isinstance(stored_data, list) and idx < len(stored_data) else None

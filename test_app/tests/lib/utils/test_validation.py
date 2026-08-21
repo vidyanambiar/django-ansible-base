@@ -789,7 +789,8 @@ class TestValidateFreeText:
             ("%24%7BPATH%7D", "percent-encoded variable expansion"),
             ("%3Ciframe%20src%3Dx%3E", "percent-encoded iframe tag"),
             ("＜ｓｃｒｉｐｔ＞alert(1)", "fullwidth chars that NFKC-fold to script tag"),
-            ("ｊａｖａｓｃｒｉｐｔ:alert(1)", "fullwidth javascript URI scheme"),
+            ("ｊａｖａｓｃｒｉｐｔ:alert(1)", "fullwidth javascript URI scheme with ASCII colon"),
+            ("ｊａｖａｓｃｒｉｐｔ：alert(1)", "fullwidth javascript URI scheme with fullwidth colon U+FF1A"),
             ("&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;", "double entity-encoded script tag"),
         ],
     )
@@ -1034,11 +1035,16 @@ class TestValidateResourceName:
 
     def test_rejects_zalgo_text(self):
         zalgo_5 = "x\u0300\u0301\u0302\u0303\u0304"
-        with pytest.raises(ValidationError, match="consecutive combining marks"):
+        with pytest.raises(ValidationError, match="combining marks"):
             validate_resource_name(zalgo_5)
         zalgo_7 = "x\u0300\u0301\u0302\u0303\u0304\u0305\u0306"
-        with pytest.raises(ValidationError, match="consecutive combining marks"):
+        with pytest.raises(ValidationError, match="combining marks"):
             validate_resource_name(zalgo_7)
+
+    def test_rejects_interleaved_zalgo_text(self):
+        interleaved = "x\u0300\u0301\u0302\u0303 \u0304\u0305\u0306\u0307"
+        with pytest.raises(ValidationError, match="combining marks"):
+            validate_resource_name(interleaved)
 
     def test_accepts_normal_combining_marks(self):
         validate_resource_name("\u0915\u0943\u0937\u094d\u0923")

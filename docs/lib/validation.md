@@ -102,13 +102,12 @@ In addition to the allowlist, names are checked for:
   visually disruptive stacked diacritics.
 
 **Error messages:**
-> Enter a valid resource name. Only letters, numbers, combining marks, spaces,
-> hyphens, underscores, dots, and @ are allowed. Must start with a letter,
-> number, or underscore. Maximum 512 characters.
+> Enter a valid name. Use letters, numbers, spaces, hyphens (-), underscores (_),
+> dots (.), and @. Start with a letter, number, or underscore. Max 512 characters.
 
 > This field can't include invisible characters.
 
-> Too many consecutive combining marks.
+> Too many combining marks.
 
 ## Tier 2 — dangerous pattern blocklist
 
